@@ -289,53 +289,61 @@ class ContentScript {
             return;
         }
 
-        try {
-            // Check if extension context is valid
-            if (!chrome.runtime || !chrome.runtime.id) {
-                throw new Error('Extension context invalid. Please reload the page and try again.');
-            }
-
-            // Use background script to make API call
-            const response = await new Promise((resolve, reject) => {
-                try {
-                    chrome.runtime.sendMessage({
-                        action: 'analyzeCode',
-                        code: result.code,
-                        language: result.language || 'python',
-                        useML: false
-                    }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            const error = chrome.runtime.lastError;
-                            if (error.message.includes('Extension context invalidated')) {
-                                reject(new Error('Extension was reloaded. Please refresh the page and try again.'));
-                            } else {
-                                reject(new Error(error.message));
-                            }
-                        } else if (response && response.success) {
-                            resolve(response.data);
-                        } else {
-                            reject(new Error(response?.error || 'Analysis failed'));
-                        }
-                    });
-                } catch (sendError) {
-                    reject(new Error('Failed to send message to extension. Please reload the extension.'));
+        const maxRetries = 2;
+        let retryCount = 0;
+        
+        while (retryCount <= maxRetries) {
+            try {
+                // Check if extension context is valid
+                if (!this.isExtensionValid()) {
+                    throw new Error('Extension context invalid. Please reload the page and try again.');
                 }
-            });
 
-            this.showAnalysisResults(response);
-        } catch (error) {
-            console.error('Analysis error:', error);
-            
-            // Provide specific error messages based on error type
-            let errorMessage = 'Analysis failed. Make sure the backend server is running.';
-            if (error.message.includes('Extension context invalidated') || 
-                error.message.includes('Extension was reloaded')) {
-                errorMessage = 'Extension was reloaded. Please refresh the page and try again.';
-            } else if (error.message.includes('Failed to send message')) {
-                errorMessage = 'Extension communication failed. Please reload the extension.';
+                // Use background script to make API call with timeout
+                const response = await this.sendMessageWithTimeout({
+                    action: 'analyzeCode',
+                    code: result.code,
+                    language: result.language || 'python',
+                    useML: false
+                }, 10000); // 10 second timeout
+
+                this.showAnalysisResults(response);
+                return; // Success, exit the retry loop
+                
+            } catch (error) {
+                console.error(`Analysis error (attempt ${retryCount + 1}):`, error);
+                
+                // Check if it's a context invalidation error
+                if (error.message.includes('Extension context invalidated') || 
+                    error.message.includes('Extension was reloaded') ||
+                    error.message.includes('Extension context invalid')) {
+                    
+                    if (retryCount < maxRetries) {
+                        // Wait a bit before retrying
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        retryCount++;
+                        continue;
+                    } else {
+                        // Max retries reached, show user-friendly message
+                        this.showNotification(
+                            'Extension needs to be reloaded. Please refresh the page or reload the extension from chrome://extensions/',
+                            'error'
+                        );
+                        return;
+                    }
+                } else {
+                    // Other errors, show appropriate message
+                    let errorMessage = 'Analysis failed. Make sure the backend server is running.';
+                    if (error.message.includes('Failed to send message')) {
+                        errorMessage = 'Extension communication failed. Please reload the extension.';
+                    } else if (error.message.includes('timeout')) {
+                        errorMessage = 'Analysis timed out. Please try again.';
+                    }
+                    
+                    this.showNotification(errorMessage, 'error');
+                    return;
+                }
             }
-            
-            this.showNotification(errorMessage, 'error');
         }
     }
 
@@ -733,56 +741,104 @@ class ContentScript {
     }
 
     async analyzeSelectedCode(code) {
-        try {
-            // Check if extension context is valid
-            if (!chrome.runtime || !chrome.runtime.id) {
-                throw new Error('Extension context invalid. Please reload the page and try again.');
-            }
-
-            const language = this.detectLanguageFromSelection(code);
-            
-            // Use background script to make API call
-            const response = await new Promise((resolve, reject) => {
-                try {
-                    chrome.runtime.sendMessage({
-                        action: 'analyzeCode',
-                        code: code,
-                        language: language,
-                        useML: true
-                    }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            const error = chrome.runtime.lastError;
-                            if (error.message.includes('Extension context invalidated')) {
-                                reject(new Error('Extension was reloaded. Please refresh the page and try again.'));
-                            } else {
-                                reject(new Error(error.message));
-                            }
-                        } else if (response && response.success) {
-                            resolve(response.data);
-                        } else {
-                            reject(new Error(response?.error || 'Analysis failed'));
-                        }
-                    });
-                } catch (sendError) {
-                    reject(new Error('Failed to send message to extension. Please reload the extension.'));
+        const maxRetries = 2;
+        let retryCount = 0;
+        
+        while (retryCount <= maxRetries) {
+            try {
+                // Check if extension context is valid
+                if (!this.isExtensionValid()) {
+                    throw new Error('Extension context invalid. Please reload the page and try again.');
                 }
-            });
 
-            this.showAnalysisResults(response);
-        } catch (error) {
-            console.error('Analysis error:', error);
-            
-            // Provide specific error messages based on error type
-            let errorMessage = 'Analysis failed. Please try again.';
-            if (error.message.includes('Extension context invalidated') || 
-                error.message.includes('Extension was reloaded')) {
-                errorMessage = 'Extension was reloaded. Please refresh the page and try again.';
-            } else if (error.message.includes('Failed to send message')) {
-                errorMessage = 'Extension communication failed. Please reload the extension.';
+                const language = this.detectLanguageFromSelection(code);
+                
+                // Use background script to make API call with timeout
+                const response = await this.sendMessageWithTimeout({
+                    action: 'analyzeCode',
+                    code: code,
+                    language: language,
+                    useML: true
+                }, 10000); // 10 second timeout
+
+                this.showAnalysisResults(response);
+                return; // Success, exit the retry loop
+                
+            } catch (error) {
+                console.error(`Analysis error (attempt ${retryCount + 1}):`, error);
+                
+                // Check if it's a context invalidation error
+                if (error.message.includes('Extension context invalidated') || 
+                    error.message.includes('Extension was reloaded') ||
+                    error.message.includes('Extension context invalid')) {
+                    
+                    if (retryCount < maxRetries) {
+                        // Wait a bit before retrying
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        retryCount++;
+                        continue;
+                    } else {
+                        // Max retries reached, show user-friendly message
+                        this.showNotification(
+                            'Extension needs to be reloaded. Please refresh the page or reload the extension from chrome://extensions/',
+                            'error'
+                        );
+                        return;
+                    }
+                } else {
+                    // Other errors, show appropriate message
+                    let errorMessage = 'Analysis failed. Please try again.';
+                    if (error.message.includes('Failed to send message')) {
+                        errorMessage = 'Extension communication failed. Please reload the extension.';
+                    } else if (error.message.includes('timeout')) {
+                        errorMessage = 'Analysis timed out. Please try again.';
+                    }
+                    
+                    this.showNotification(errorMessage, 'error');
+                    return;
+                }
             }
-            
-            this.showNotification(errorMessage, 'error');
         }
+    }
+
+    // Helper method to check if extension is still valid
+    isExtensionValid() {
+        try {
+            return chrome.runtime && chrome.runtime.id && typeof chrome.runtime.sendMessage === 'function';
+        } catch (error) {
+            return false;
+        }
+    }
+
+    // Helper method to send message with timeout
+    async sendMessageWithTimeout(message, timeoutMs = 10000) {
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Request timed out'));
+            }, timeoutMs);
+
+            try {
+                chrome.runtime.sendMessage(message, (response) => {
+                    clearTimeout(timeoutId);
+                    
+                    if (chrome.runtime.lastError) {
+                        const error = chrome.runtime.lastError;
+                        if (error.message.includes('Extension context invalidated')) {
+                            reject(new Error('Extension was reloaded. Please refresh the page and try again.'));
+                        } else {
+                            reject(new Error(error.message));
+                        }
+                    } else if (response && response.success) {
+                        resolve(response.data);
+                    } else {
+                        reject(new Error(response?.error || 'Analysis failed'));
+                    }
+                });
+            } catch (sendError) {
+                clearTimeout(timeoutId);
+                reject(new Error('Failed to send message to extension. Please reload the extension.'));
+            }
+        });
     }
 }
 
