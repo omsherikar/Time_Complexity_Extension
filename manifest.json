@@ -1,0 +1,97 @@
+{
+  "manifest_version": 3,
+  "name": "TimeComplexity Analyzer",
+  "version": "1.0.0",
+  "description": "Analyze time complexity of code from coding platforms",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "https://leetcode.com/*",
+    "https://codeforces.com/*",
+    "https://www.geeksforgeeks.org/*",
+    "https://practice.geeksforgeeks.org/*",
+    "https://www.hackerrank.com/*",
+    "https://www.codechef.com/*",
+    "https://www.interviewbit.com/*",
+    "https://www.codingninjas.com/*",
+    "https://www.spoj.com/*",
+    "https://atcoder.jp/*",
+    "https://www.topcoder.com/*",
+    "https://www.hackerearth.com/*",
+    "https://www.codewars.com/*",
+    "https://www.exercism.io/*",
+    "https://www.projecteuler.net/*",
+    "https://www.beecrowd.com.br/*",
+    "https://www.urionlinejudge.com.br/*",
+    "https://www.vjudge.net/*",
+    "https://www.luogu.com.cn/*",
+    "https://www.nowcoder.com/*",
+    "https://www.lintcode.com/*",
+    "https://www.jiuzhang.com/*",
+    "https://www.acwing.com/*",
+    "https://www.51nod.com/*",
+    "https://www.poj.org/*",
+    "https://www.zoj.pintia.cn/*",
+    "https://www.patest.cn/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "TimeComplexity Analyzer"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://leetcode.com/*",
+        "https://codeforces.com/*",
+        "https://www.geeksforgeeks.org/*",
+        "https://practice.geeksforgeeks.org/*",
+        "https://www.hackerrank.com/*",
+        "https://www.codechef.com/*",
+        "https://www.interviewbit.com/*",
+        "https://www.codingninjas.com/*",
+        "https://www.spoj.com/*",
+        "https://atcoder.jp/*",
+        "https://www.topcoder.com/*",
+        "https://www.hackerearth.com/*",
+        "https://www.codewars.com/*",
+        "https://www.exercism.io/*",
+        "https://www.projecteuler.net/*",
+        "https://www.beecrowd.com.br/*",
+        "https://www.urionlinejudge.com.br/*",
+        "https://www.vjudge.net/*",
+        "https://www.luogu.com.cn/*",
+        "https://www.nowcoder.com/*",
+        "https://www.lintcode.com/*",
+        "https://www.jiuzhang.com/*",
+        "https://www.acwing.com/*",
+        "https://www.51nod.com/*",
+        "https://www.poj.org/*",
+        "https://www.zoj.pintia.cn/*",
+        "https://www.patest.cn/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "analyze-code": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+A",
+        "mac": "Command+Shift+A"
+      },
+      "description": "Analyze code complexity"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+} 

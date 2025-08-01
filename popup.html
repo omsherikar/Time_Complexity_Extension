@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeComplexity Analyzer</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⏱️ TimeComplexity Analyzer</h1>
+            <p>ML-Enhanced Algorithm Analysis</p>
+        </header>
+
+        <div class="input-section">
+            <div class="controls-row">
+                <div class="language-selector">
+                    <label for="language">Language:</label>
+                    <select id="language">
+                        <option value="python">Python</option>
+                        <option value="cpp">C++</option>
+                        <option value="java">Java</option>
+                        <option value="javascript">JavaScript</option>
+                    </select>
+                </div>
+
+                <div class="ml-toggle">
+                    <label for="mlToggle" class="toggle-label">
+                        <input type="checkbox" id="mlToggle" checked>
+                        <span class="toggle-slider"></span>
+                        🤖 ML Analysis
+                    </label>
+                </div>
+            </div>
+
+            <div class="code-input">
+                <label for="codeInput">Code:</label>
+                <textarea id="codeInput" placeholder="Paste your code here, select code on page, or use auto-extract..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button id="analyzeBtn" class="primary-btn">🔍 Analyze Code</button>
+                <button id="extractBtn" class="secondary-btn">📋 Extract from Page</button>
+                <button id="clearBtn" class="secondary-btn">🗑️ Clear</button>
+            </div>
+            
+
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="result-card">
+                <h3>📊 Analysis Results <span id="analysisType" class="analysis-type regular">Regular</span></h3>
+                <div class="complexity-grid">
+                    <div class="complexity-item">
+                        <span class="label">Time Complexity:</span>
+                        <span id="timeComplexity" class="value">-</span>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="label">Space Complexity:</span>
+                        <span id="spaceComplexity" class="value">-</span>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="label">Confidence:</span>
+                        <span id="confidence" class="value">-</span>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="label">Method:</span>
+                        <span id="analysisMethod" class="value">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>🧠 Analysis Breakdown</h3>
+                <div id="analysisBreakdown" class="breakdown">
+                    <p>Click analyze to see detailed breakdown...</p>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>💡 Optimization Suggestions</h3>
+                <div id="suggestions" class="suggestions">
+                    <p>Suggestions will appear here...</p>
+                </div>
+            </div>
+
+            <div class="result-card" id="mlInsights" style="display: none;">
+                <!-- ML insights will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing code complexity...</p>
+        </div>
+
+        <div class="error" id="error" style="display: none;">
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 
