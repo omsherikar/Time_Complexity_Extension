@@ -290,28 +290,52 @@ class ContentScript {
         }
 
         try {
+            // Check if extension context is valid
+            if (!chrome.runtime || !chrome.runtime.id) {
+                throw new Error('Extension context invalid. Please reload the page and try again.');
+            }
+
             // Use background script to make API call
             const response = await new Promise((resolve, reject) => {
-                chrome.runtime.sendMessage({
-                    action: 'analyzeCode',
-                    code: result.code,
-                    language: result.language || 'python',
-                    useML: false
-                }, (response) => {
-                    if (chrome.runtime.lastError) {
-                        reject(new Error(chrome.runtime.lastError.message));
-                    } else if (response && response.success) {
-                        resolve(response.data);
-                    } else {
-                        reject(new Error(response?.error || 'Analysis failed'));
-                    }
-                });
+                try {
+                    chrome.runtime.sendMessage({
+                        action: 'analyzeCode',
+                        code: result.code,
+                        language: result.language || 'python',
+                        useML: false
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            const error = chrome.runtime.lastError;
+                            if (error.message.includes('Extension context invalidated')) {
+                                reject(new Error('Extension was reloaded. Please refresh the page and try again.'));
+                            } else {
+                                reject(new Error(error.message));
+                            }
+                        } else if (response && response.success) {
+                            resolve(response.data);
+                        } else {
+                            reject(new Error(response?.error || 'Analysis failed'));
+                        }
+                    });
+                } catch (sendError) {
+                    reject(new Error('Failed to send message to extension. Please reload the extension.'));
+                }
             });
 
             this.showAnalysisResults(response);
         } catch (error) {
             console.error('Analysis error:', error);
-            this.showNotification('Analysis failed. Make sure the backend server is running.', 'error');
+            
+            // Provide specific error messages based on error type
+            let errorMessage = 'Analysis failed. Make sure the backend server is running.';
+            if (error.message.includes('Extension context invalidated') || 
+                error.message.includes('Extension was reloaded')) {
+                errorMessage = 'Extension was reloaded. Please refresh the page and try again.';
+            } else if (error.message.includes('Failed to send message')) {
+                errorMessage = 'Extension communication failed. Please reload the extension.';
+            }
+            
+            this.showNotification(errorMessage, 'error');
         }
     }
 
@@ -710,30 +734,54 @@ class ContentScript {
 
     async analyzeSelectedCode(code) {
         try {
+            // Check if extension context is valid
+            if (!chrome.runtime || !chrome.runtime.id) {
+                throw new Error('Extension context invalid. Please reload the page and try again.');
+            }
+
             const language = this.detectLanguageFromSelection(code);
             
             // Use background script to make API call
             const response = await new Promise((resolve, reject) => {
-                chrome.runtime.sendMessage({
-                    action: 'analyzeCode',
-                    code: code,
-                    language: language,
-                    useML: true
-                }, (response) => {
-                    if (chrome.runtime.lastError) {
-                        reject(new Error(chrome.runtime.lastError.message));
-                    } else if (response && response.success) {
-                        resolve(response.data);
-                    } else {
-                        reject(new Error(response?.error || 'Analysis failed'));
-                    }
-                });
+                try {
+                    chrome.runtime.sendMessage({
+                        action: 'analyzeCode',
+                        code: code,
+                        language: language,
+                        useML: true
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            const error = chrome.runtime.lastError;
+                            if (error.message.includes('Extension context invalidated')) {
+                                reject(new Error('Extension was reloaded. Please refresh the page and try again.'));
+                            } else {
+                                reject(new Error(error.message));
+                            }
+                        } else if (response && response.success) {
+                            resolve(response.data);
+                        } else {
+                            reject(new Error(response?.error || 'Analysis failed'));
+                        }
+                    });
+                } catch (sendError) {
+                    reject(new Error('Failed to send message to extension. Please reload the extension.'));
+                }
             });
 
             this.showAnalysisResults(response);
         } catch (error) {
             console.error('Analysis error:', error);
-            this.showNotification('Analysis failed. Please try again.', 'error');
+            
+            // Provide specific error messages based on error type
+            let errorMessage = 'Analysis failed. Please try again.';
+            if (error.message.includes('Extension context invalidated') || 
+                error.message.includes('Extension was reloaded')) {
+                errorMessage = 'Extension was reloaded. Please refresh the page and try again.';
+            } else if (error.message.includes('Failed to send message')) {
+                errorMessage = 'Extension communication failed. Please reload the extension.';
+            }
+            
+            this.showNotification(errorMessage, 'error');
         }
     }
 }
