@@ -209,7 +209,7 @@ class ContentScript {
             'pre code',
             '.code pre',
             '.prettyprint',
-            '.brush:',
+            '.brush',
             '.programming-source'
         ];
 
@@ -238,7 +238,7 @@ class ContentScript {
             'pre code',
             '.code pre',
             '.prettyprint',
-            '.brush:',
+            '.brush',
             '.programming-source',
             '.code-box'
         ];

@@ -28,7 +28,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     if (request.action === 'analyzeCode') {
         // Handle API calls from content scripts
-        this.analyzeCode(request.code, request.language, request.useML)
+        analyzeCode(request.code, request.language, request.useML)
             .then(result => sendResponse({ success: true, data: result }))
             .catch(error => sendResponse({ success: false, error: error.message }));
         return true; // Keep message channel open for async response
