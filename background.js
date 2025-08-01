@@ -26,6 +26,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true; // Keep message channel open for async response
     }
     
+    if (request.action === 'analyzeCode') {
+        // Handle API calls from content scripts
+        this.analyzeCode(request.code, request.language, request.useML)
+            .then(result => sendResponse({ success: true, data: result }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true; // Keep message channel open for async response
+    }
+    
     if (request.action === 'getSettings') {
         chrome.storage.local.get(['apiUrl', 'autoExtract', 'showFloatingButton'], (result) => {
             sendResponse(result);
@@ -40,6 +48,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 });
+
+// Function to make API calls to backend
+async analyzeCode(code, language, useML = false) {
+    try {
+        const settings = await chrome.storage.local.get(['apiUrl']);
+        const apiUrl = settings.apiUrl || 'http://localhost:8000';
+        const endpoint = useML ? '/analyze-ml' : '/analyze';
+        
+        const response = await fetch(`${apiUrl}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: code,
+                language: language || 'python'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API call failed:', error);
+        throw error;
+    }
+}
 
 // Handle tab updates to inject content scripts when needed
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

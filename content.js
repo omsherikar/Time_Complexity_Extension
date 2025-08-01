@@ -288,23 +288,25 @@ class ContentScript {
         }
 
         try {
-            const response = await fetch('http://localhost:8000/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            // Use background script to make API call
+            const response = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage({
+                    action: 'analyzeCode',
                     code: result.code,
-                    language: result.language || 'python'
-                })
+                    language: result.language || 'python',
+                    useML: false
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                    } else if (response && response.success) {
+                        resolve(response.data);
+                    } else {
+                        reject(new Error(response?.error || 'Analysis failed'));
+                    }
+                });
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const analysis = await response.json();
-            this.showAnalysisResults(analysis);
+            this.showAnalysisResults(response);
         } catch (error) {
             console.error('Analysis error:', error);
             this.showNotification('Analysis failed. Make sure the backend server is running.', 'error');
@@ -665,24 +667,25 @@ class ContentScript {
         try {
             const language = this.detectLanguageFromSelection(code);
             
-            // Send to backend for analysis
-            const response = await fetch('http://localhost:8000/analyze-ml', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            // Use background script to make API call
+            const response = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage({
+                    action: 'analyzeCode',
                     code: code,
-                    language: language
-                })
+                    language: language,
+                    useML: true
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                    } else if (response && response.success) {
+                        resolve(response.data);
+                    } else {
+                        reject(new Error(response?.error || 'Analysis failed'));
+                    }
+                });
             });
 
-            if (response.ok) {
-                const result = await response.json();
-                this.showAnalysisResults(result);
-            } else {
-                this.showNotification('Analysis failed. Make sure the backend server is running.', 'error');
-            }
+            this.showAnalysisResults(response);
         } catch (error) {
             console.error('Analysis error:', error);
             this.showNotification('Analysis failed. Please try again.', 'error');
