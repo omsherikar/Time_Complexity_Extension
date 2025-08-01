@@ -67,7 +67,7 @@ async def analyze_code(request: AnalysisRequest):
         if not request.code.strip():
             raise HTTPException(status_code=400, detail="Code cannot be empty")
         
-        if request.language not in ["python", "cpp", "java", "javascript"]:
+        if request.language not in ["python", "cpp", "java", "javascript", "c", "go", "rust"]:
             raise HTTPException(status_code=400, detail="Unsupported language")
         
         # Perform analysis
@@ -103,12 +103,15 @@ async def analyze_ml_options():
 async def get_supported_languages():
     """Get list of supported programming languages"""
     return {
-        "languages": ["python", "cpp", "java", "javascript"],
+        "languages": ["python", "cpp", "java", "javascript", "c", "go", "rust"],
         "features": {
             "python": ["AST parsing", "Loop detection", "Recursion analysis"],
             "cpp": ["AST parsing", "Loop detection", "Recursion analysis"],
             "java": ["AST parsing", "Loop detection", "Recursion analysis"],
-            "javascript": ["AST parsing", "Loop detection", "Recursion analysis"]
+            "javascript": ["AST parsing", "Loop detection", "Recursion analysis"],
+            "c": ["Pattern matching", "Loop detection", "Recursion analysis"],
+            "go": ["Pattern matching", "Loop detection", "Recursion analysis"],
+            "rust": ["Pattern matching", "Loop detection", "Recursion analysis"]
         }
     }
 
@@ -120,7 +123,7 @@ async def analyze_with_ml_endpoint(request: AnalysisRequest):
         if not request.code.strip():
             raise HTTPException(status_code=400, detail="Code cannot be empty")
         
-        if request.language not in ["python", "cpp", "java", "javascript"]:
+        if request.language not in ["python", "cpp", "java", "javascript", "c", "go", "rust"]:
             raise HTTPException(status_code=400, detail="Unsupported language")
         
         if analyze_with_ml and ML_AVAILABLE:

@@ -61,6 +61,8 @@ class ContentScript {
             // First try to get selected code, then fall back to page extraction
             const selectedCode = this.getSelectedCode();
             if (selectedCode && selectedCode.code) {
+                // Show language detection feedback
+                this.showNotification(`Detected language: ${selectedCode.language.toUpperCase()}`, 'info');
                 this.analyzeSelectedCode(selectedCode.code);
             } else {
                 this.analyzeCurrentCode();
@@ -628,35 +630,75 @@ class ContentScript {
     }
 
     detectLanguageFromSelection(code) {
-        // Simple language detection based on code patterns
+        // Enhanced language detection based on code patterns
         const lines = code.split('\n');
+        const codeLower = code.toLowerCase();
         
-        // Check for Python patterns
+        // Python patterns (high confidence)
         if (code.includes('def ') || code.includes('import ') || 
             code.includes('print(') || code.includes('if __name__') ||
-            lines.some(line => line.includes('def ') && line.includes(':'))) {
+            code.includes('class ') && code.includes(':') ||
+            lines.some(line => line.includes('def ') && line.includes(':')) ||
+            code.includes('lambda ') || code.includes('list(') ||
+            code.includes('dict(') || code.includes('set(') ||
+            code.includes('try:') || code.includes('except:') ||
+            code.includes('with ') && code.includes(':')) {
             return 'python';
         }
         
-        // Check for C++ patterns
+        // C++ patterns (high confidence)
         if (code.includes('#include') || code.includes('std::') || 
             code.includes('int main') || code.includes('cout') ||
-            code.includes('vector<') || code.includes('string ')) {
+            code.includes('vector<') || code.includes('string ') ||
+            code.includes('namespace ') || code.includes('template<') ||
+            code.includes('class ') && code.includes('{') ||
+            code.includes('public:') || code.includes('private:') ||
+            code.includes('cin >>') || code.includes('endl') ||
+            code.includes('auto ') || code.includes('const ')) {
             return 'cpp';
         }
         
-        // Check for Java patterns
+        // Java patterns (high confidence)
         if (code.includes('public class') || code.includes('public static void main') ||
             code.includes('System.out.println') || code.includes('import java') ||
-            code.includes('String[]') || code.includes('ArrayList<')) {
+            code.includes('String[]') || code.includes('ArrayList<') ||
+            code.includes('public ') && code.includes('class ') ||
+            code.includes('private ') || code.includes('protected ') ||
+            code.includes('interface ') || code.includes('extends ') ||
+            code.includes('implements ') || code.includes('new ')) {
             return 'java';
         }
         
-        // Check for JavaScript patterns
+        // JavaScript patterns (high confidence)
         if (code.includes('function ') || code.includes('const ') || 
             code.includes('let ') || code.includes('console.log') ||
-            code.includes('=>') || code.includes('var ')) {
+            code.includes('=>') || code.includes('var ') ||
+            code.includes('export ') || code.includes('import ') ||
+            code.includes('async ') || code.includes('await ') ||
+            code.includes('Promise') || code.includes('fetch(') ||
+            code.includes('document.') || code.includes('window.')) {
             return 'javascript';
+        }
+        
+        // C patterns
+        if (code.includes('#include <stdio.h>') || code.includes('printf(') ||
+            code.includes('scanf(') || code.includes('malloc(') ||
+            code.includes('free(') || code.includes('struct ')) {
+            return 'c';
+        }
+        
+        // Go patterns
+        if (code.includes('package ') || code.includes('import ') ||
+            code.includes('func ') || code.includes('fmt.') ||
+            code.includes('var ') || code.includes('type ')) {
+            return 'go';
+        }
+        
+        // Rust patterns
+        if (code.includes('fn ') || code.includes('let ') ||
+            code.includes('println!') || code.includes('use ') ||
+            code.includes('struct ') || code.includes('impl ')) {
+            return 'rust';
         }
         
         // Default to Python if no clear pattern
