@@ -634,28 +634,31 @@ class ContentScript {
         const lines = code.split('\n');
         const codeLower = code.toLowerCase();
         
+        // C++ patterns (highest priority - check first)
+        if (code.includes('#include') || code.includes('std::') || 
+            code.includes('int main') || code.includes('cout') ||
+            code.includes('vector<') || code.includes('string ') ||
+            code.includes('namespace ') || code.includes('template<') ||
+            code.includes('cin >>') || code.includes('endl') ||
+            code.includes('auto ') || code.includes('const ') ||
+            code.includes('long long') || code.includes('INT_MAX') ||
+            code.includes('INT_MIN') || code.includes('public:') ||
+            code.includes('private:') || code.includes('protected:') ||
+            (code.includes('class ') && code.includes('{')) ||
+            (code.includes('class ') && code.includes('public:'))) {
+            return 'cpp';
+        }
+        
         // Python patterns (high confidence)
         if (code.includes('def ') || code.includes('import ') || 
             code.includes('print(') || code.includes('if __name__') ||
-            code.includes('class ') && code.includes(':') ||
+            (code.includes('class ') && code.includes(':') && !code.includes('public:')) ||
             lines.some(line => line.includes('def ') && line.includes(':')) ||
             code.includes('lambda ') || code.includes('list(') ||
             code.includes('dict(') || code.includes('set(') ||
             code.includes('try:') || code.includes('except:') ||
             code.includes('with ') && code.includes(':')) {
             return 'python';
-        }
-        
-        // C++ patterns (high confidence)
-        if (code.includes('#include') || code.includes('std::') || 
-            code.includes('int main') || code.includes('cout') ||
-            code.includes('vector<') || code.includes('string ') ||
-            code.includes('namespace ') || code.includes('template<') ||
-            code.includes('class ') && code.includes('{') ||
-            code.includes('public:') || code.includes('private:') ||
-            code.includes('cin >>') || code.includes('endl') ||
-            code.includes('auto ') || code.includes('const ')) {
-            return 'cpp';
         }
         
         // Java patterns (high confidence)
