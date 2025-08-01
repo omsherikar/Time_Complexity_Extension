@@ -13,7 +13,7 @@ ml_path = Path(__file__).parent.parent / "ml_integration"
 sys.path.append(str(ml_path))
 
 try:
-    from hybrid_analyzer import HybridTimeComplexityAnalyzer
+    from ml_integration.hybrid_analyzer import HybridTimeComplexityAnalyzer
     
     # Initialize hybrid analyzer with ML models
     ml_models_path = str(ml_path / "ml_models.pkl")
@@ -24,6 +24,10 @@ try:
     
 except ImportError as e:
     print(f"⚠️ ML integration not available: {e}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Python path: {sys.path}")
+    import traceback
+    traceback.print_exc()
     ML_AVAILABLE = False
     hybrid_analyzer = None
 
@@ -33,6 +37,6 @@ def analyze_with_ml(code: str, language: str = "python"):
         return hybrid_analyzer.analyze(code, language)
     else:
         # Fallback to rule-based analysis
-        from analyzer import TimeComplexityAnalyzer
+        from .analyzer import TimeComplexityAnalyzer
         analyzer = TimeComplexityAnalyzer()
         return analyzer.analyze(code, language)

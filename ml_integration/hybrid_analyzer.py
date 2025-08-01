@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from backend.analyzer import TimeComplexityAnalyzer
-from ml_models import TimeComplexityMLAnalyzer
+from .ml_models import TimeComplexityMLAnalyzer
 from typing import Dict, Any, List
 import json
 
