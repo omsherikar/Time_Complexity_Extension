@@ -117,6 +117,20 @@ class TimeComplexityAnalyzer:
                 confidence=0.95
             ),
             ComplexityPattern(
+                pattern=r"while\s*\(\s*\w+\s*!=\s*nullptr\s*\)",
+                time_complexity="O(n)",
+                space_complexity="O(1)",
+                description="Linked list traversal",
+                confidence=0.9
+            ),
+            ComplexityPattern(
+                pattern=r"while\s*\(\s*\w+\s*!=\s*nullptr\s*\|\|\s*\w+\s*!=\s*nullptr\s*\|\|\s*\w+\s*>\s*0\s*\)",
+                time_complexity="O(n)",
+                space_complexity="O(1)",
+                description="Linked list traversal with carry",
+                confidence=0.9
+            ),
+            ComplexityPattern(
                 pattern=r"sort\s*\(\s*\w+\.begin\s*\(\s*\)\s*,\s*\w+\.end\s*\(\s*\)\s*\)",
                 time_complexity="O(n log n)",
                 space_complexity="O(1)",
@@ -129,6 +143,34 @@ class TimeComplexityAnalyzer:
                 space_complexity="O(n)",
                 description="Vector declaration",
                 confidence=0.8
+            ),
+            ComplexityPattern(
+                pattern=r"ListNode\*\s+\w+",
+                time_complexity="O(1)",
+                space_complexity="O(1)",
+                description="ListNode pointer declaration",
+                confidence=0.8
+            ),
+            ComplexityPattern(
+                pattern=r"new\s+ListNode",
+                time_complexity="O(1)",
+                space_complexity="O(1)",
+                description="ListNode allocation",
+                confidence=0.8
+            ),
+            ComplexityPattern(
+                pattern=r"->\s*val",
+                time_complexity="O(1)",
+                space_complexity="O(1)",
+                description="Linked list value access",
+                confidence=0.9
+            ),
+            ComplexityPattern(
+                pattern=r"->\s*next",
+                time_complexity="O(1)",
+                space_complexity="O(1)",
+                description="Linked list next pointer access",
+                confidence=0.9
             )
         ]
     
@@ -432,6 +474,15 @@ class TimeComplexityAnalyzer:
         return_count = code.count('return')
         if_count = code.count('if')
         
+        # C++ specific patterns
+        cpp_class_count = code.count('class ')
+        cpp_public_count = code.count('public:')
+        cpp_private_count = code.count('private:')
+        cpp_pointer_count = code.count('*')
+        cpp_arrow_count = code.count('->')
+        cpp_nullptr_count = code.count('nullptr')
+        cpp_new_count = code.count('new ')
+        
         # Check for recursion patterns
         has_recursion = def_count > 0 and return_count > 0 and any(
             '(' in line and ')' in line and 'return' in line 
@@ -453,6 +504,12 @@ class TimeComplexityAnalyzer:
         has_arrays = any(word in code_lower for word in ['array', 'list', 'vector', '[]'])
         has_maps = any(word in code_lower for word in ['map', 'dict', 'hash', '{}'])
         has_sets = any(word in code_lower for word in ['set', 'hashset'])
+        
+        # Check for C++ specific patterns
+        is_cpp = (cpp_class_count > 0 and cpp_public_count > 0) or \
+                 (cpp_pointer_count > 0 and cpp_arrow_count > 0) or \
+                 (cpp_nullptr_count > 0) or \
+                 (cpp_new_count > 0)
         
         # Determine complexity based on patterns
         if has_recursion:
@@ -483,6 +540,17 @@ class TimeComplexityAnalyzer:
             breakdown.append(f"Found {while_count} while loops")
         if def_count > 0:
             breakdown.append(f"Found {def_count} function definitions")
+        
+        # Add C++ specific context
+        if is_cpp:
+            if cpp_class_count > 0:
+                breakdown.append(f"Found {cpp_class_count} C++ class definitions")
+            if cpp_pointer_count > 0:
+                breakdown.append(f"Found {cpp_pointer_count} pointer operations")
+            if cpp_nullptr_count > 0:
+                breakdown.append(f"Found {cpp_nullptr_count} nullptr checks")
+            if cpp_new_count > 0:
+                breakdown.append(f"Found {cpp_new_count} dynamic allocations")
         
         return {
             "time_complexity": time_complexity,

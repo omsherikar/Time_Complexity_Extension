@@ -70,10 +70,12 @@ class ContentScript {
             // First try to get selected code, then fall back to page extraction
             const selectedCode = this.getSelectedCode();
             if (selectedCode && selectedCode.code) {
-                // Show language detection feedback
-                this.showNotification(`Detected language: ${selectedCode.language.toUpperCase()}`, 'info');
+                // Show language detection feedback with more detail
+                const languageDisplay = selectedCode.language.toUpperCase();
+                this.showNotification(`🔍 Detected: ${languageDisplay} | 📝 Analyzing selected code...`, 'info');
                 this.analyzeSelectedCode(selectedCode.code);
             } else {
+                this.showNotification('📋 Extracting code from page...', 'info');
                 this.analyzeCurrentCode();
             }
         });
@@ -656,29 +658,43 @@ class ContentScript {
         const lines = code.split('\n');
         const codeLower = code.toLowerCase();
         
-        // Python patterns (high confidence)
-        if (code.includes('def ') || code.includes('import ') || 
-            code.includes('print(') || code.includes('if __name__') ||
-            code.includes('class ') && code.includes(':') ||
-            lines.some(line => line.includes('def ') && line.includes(':')) ||
-            code.includes('lambda ') || code.includes('list(') ||
-            code.includes('dict(') || code.includes('set(') ||
-            code.includes('try:') || code.includes('except:') ||
-            code.includes('with ') && code.includes(':')) {
-            return 'python';
-        }
+        // Debug mode - can be enabled by setting window.debugLanguageDetection = true
+        const debugMode = window.debugLanguageDetection || false;
         
-        // C++ patterns (high confidence)
+        // C++ patterns (high confidence) - Check first to avoid Python conflicts
         if (code.includes('#include') || code.includes('std::') || 
             code.includes('int main') || code.includes('cout') ||
             code.includes('vector<') || code.includes('string ') ||
             code.includes('namespace ') || code.includes('template<') ||
-            code.includes('class ') && code.includes('{') ||
+            (code.includes('class ') && code.includes('{')) ||
             code.includes('public:') || code.includes('private:') ||
             code.includes('cin >>') || code.includes('endl') ||
-            code.includes('auto ') || code.includes('const ')) {
+            code.includes('auto ') || code.includes('const ') ||
+            code.includes('*') && code.includes('->') ||
+            code.includes('ListNode*') || code.includes('TreeNode*') ||
+            code.includes('nullptr') || code.includes('new ') ||
+            code.includes('delete ') || code.includes('->val') ||
+            code.includes('->next') || code.includes('->left') ||
+            code.includes('->right') || code.includes('struct ') ||
+            code.includes('typedef ') || code.includes('using namespace')) {
+            if (debugMode) console.log('🔍 C++ detected by patterns');
             return 'cpp';
         }
+        
+        // Python patterns (high confidence)
+        if (code.includes('def ') || code.includes('import ') || 
+            code.includes('print(') || code.includes('if __name__') ||
+            (code.includes('class ') && code.includes(':')) ||
+            lines.some(line => line.includes('def ') && line.includes(':')) ||
+            code.includes('lambda ') || code.includes('list(') ||
+            code.includes('dict(') || code.includes('set(') ||
+            code.includes('try:') || code.includes('except:') ||
+            (code.includes('with ') && code.includes(':'))) {
+            if (debugMode) console.log('🐍 Python detected by patterns');
+            return 'python';
+        }
+        
+
         
         // Java patterns (high confidence)
         if (code.includes('public class') || code.includes('public static void main') ||
@@ -724,6 +740,7 @@ class ContentScript {
         }
         
         // Default to Python if no clear pattern
+        if (debugMode) console.log('⚠️ No clear pattern detected, defaulting to Python');
         return 'python';
     }
 
