@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimeComplexity Analyzer - Chrome Extension</title>
+    <title>TimeComplexity Analyzer - AI-Powered Chrome Extension</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,181 +13,456 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #e2e8f0;
+            background: #0a0a0a;
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-20px) translateY(-10px); }
+            50% { transform: translateX(20px) translateY(10px); }
+            75% { transform: translateX(-10px) translateY(20px); }
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 1;
         }
         
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 50px;
+            color: #ffffff;
+            margin-bottom: 80px;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.3; }
+            50% { transform: translateX(-50%) scale(1.1); opacity: 0.5; }
         }
         
         .header h1 {
-            font-size: 3rem;
+            font-size: 4rem;
+            font-weight: 700;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+            to { text-shadow: 0 0 40px rgba(102, 126, 234, 0.8), 0 0 60px rgba(118, 75, 162, 0.3); }
         }
         
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             opacity: 0.9;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+        
+        .tech-badge {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
         }
         
         .main-content {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
+            background: rgba(15, 15, 15, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 60px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.5), transparent);
         }
         
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
-            margin: 40px 0;
+            margin: 60px 0;
         }
         
         .feature {
             text-align: center;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border: 2px solid #e9ecef;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 40px 30px;
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .feature:hover::before {
+            left: 100%;
         }
         
         .feature:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(102, 126, 234, 0.2),
+                0 0 0 1px rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.5);
         }
         
         .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
+            font-size: 3.5rem;
+            margin-bottom: 25px;
+            display: block;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
         
         .feature h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .feature p {
+            color: #a0aec0;
+            line-height: 1.6;
+            font-size: 1rem;
         }
         
         .download-section {
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             color: white;
-            padding: 50px;
-            border-radius: 20px;
-            margin: 40px 0;
+            padding: 60px;
+            border-radius: 24px;
+            margin: 60px 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(102, 126, 234, 0.3);
+        }
+        
+        .download-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         .download-btn {
             display: inline-block;
-            background: white;
-            color: #667eea;
-            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1a1a1a;
+            padding: 18px 36px;
             text-decoration: none;
             border-radius: 50px;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 1.2rem;
-            margin: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin: 15px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .download-btn:hover::before {
+            left: 100%;
         }
         
         .download-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 1);
         }
         
         .installation-steps {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            margin: 30px 0;
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .installation-steps h3 {
+            color: #ffffff;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .installation-steps ol {
             margin-left: 20px;
+            counter-reset: step-counter;
         }
         
         .installation-steps li {
-            margin: 10px 0;
+            margin: 20px 0;
             font-size: 1.1rem;
+            color: #e2e8f0;
+            position: relative;
+            padding-left: 40px;
+            counter-increment: step-counter;
+        }
+        
+        .installation-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .installation-steps code {
+            background: rgba(102, 126, 234, 0.2);
+            color: #f093fb;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
         }
         
         .footer {
             text-align: center;
-            color: white;
-            margin-top: 50px;
-            opacity: 0.8;
+            color: #a0aec0;
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: #f093fb;
         }
         
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
         }
         
         .stat {
             text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px 20px;
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
         }
         
         .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-family: 'JetBrains Mono', monospace;
         }
         
         .stat-label {
-            color: #666;
-            font-size: 1.1rem;
+            color: #a0aec0;
+            font-size: 1.2rem;
+            font-weight: 500;
         }
         
         .demo-section {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            margin: 30px 0;
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-section h3 {
+            color: #ffffff;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .code-demo {
-            background: #2d3748;
+            background: #0a0a0a;
             color: #e2e8f0;
-            padding: 20px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            margin: 20px 0;
+            padding: 30px;
+            border-radius: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 25px 0;
             overflow-x: auto;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .code-demo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.5), transparent);
         }
         
         .highlight {
             color: #68d391;
+            font-weight: 500;
+        }
+        
+        .code-demo .keyword {
+            color: #f093fb;
+            font-weight: 500;
+        }
+        
+        .code-demo .string {
+            color: #fbb6ce;
+        }
+        
+        .code-demo .number {
+            color: #f6ad55;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 TimeComplexity Analyzer</h1>
+            <h1>⚡ TimeComplexity Analyzer</h1>
             <p>AI-Powered Chrome Extension for Algorithm Analysis</p>
+            <div class="tech-badge">v1.0.0 • ML-Enhanced • Free Forever</div>
         </div>
         
         <div class="main-content">
@@ -251,26 +527,29 @@
                 <h3>🎯 How It Works</h3>
                 <p>Select any code snippet on supported platforms and get instant complexity analysis:</p>
                 <div class="code-demo">
-<span class="highlight">def</span> binary_search(arr, target):
-    left, right = <span class="highlight">0</span>, <span class="highlight">len</span>(arr) - <span class="highlight">1</span>
-    <span class="highlight">while</span> left <= right:
-        mid = (left + right) // <span class="highlight">2</span>
-        <span class="highlight">if</span> arr[mid] == target:
-            <span class="highlight">return</span> mid
-        <span class="highlight">elif</span> arr[mid] < target:
-            left = mid + <span class="highlight">1</span>
-        <span class="highlight">else</span>:
-            right = mid - <span class="highlight">1</span>
-    <span class="highlight">return</span> -<span class="highlight">1</span>
+<span class="keyword">def</span> <span class="highlight">binary_search</span>(arr, target):
+    left, right = <span class="number">0</span>, <span class="highlight">len</span>(arr) - <span class="number">1</span>
+    <span class="keyword">while</span> left <= right:
+        mid = (left + right) // <span class="number">2</span>
+        <span class="keyword">if</span> arr[mid] == target:
+            <span class="keyword">return</span> mid
+        <span class="keyword">elif</span> arr[mid] < target:
+            left = mid + <span class="number">1</span>
+        <span class="keyword">else</span>:
+            right = mid - <span class="number">1</span>
+    <span class="keyword">return</span> -<span class="number">1</span>
                 </div>
-                <p><strong>Result:</strong> Time Complexity: O(log n), Space Complexity: O(1)</p>
+                <p style="text-align: center; color: #68d391; font-weight: 600; margin-top: 20px;">
+                    <strong>🤖 ML Analysis Result:</strong> Time Complexity: O(log n), Space Complexity: O(1) 
+                    <br><span style="color: #a0aec0; font-size: 0.9rem;">Confidence: 95% • Method: Hybrid ML + Rule-based</span>
+                </p>
             </div>
             
             <div class="download-section">
-                <h2>📥 Download & Install</h2>
-                <p>Get started in under 2 minutes!</p>
+                <h2>🚀 Download & Install</h2>
+                <p>Get started in under 2 minutes! Join thousands of developers using our AI-powered analysis.</p>
                 <a href="https://github.com/omsherikar/Time_Complexity_Extension/releases/latest/download/timecomplexity-analyzer-v1.0.0.zip" class="download-btn">
-                    📦 Download Extension
+                    ⚡ Download Extension
                 </a>
                 <a href="https://github.com/omsherikar/Time_Complexity_Extension" class="download-btn">
                     🔗 View Source Code
@@ -291,8 +570,9 @@
         </div>
         
         <div class="footer">
-            <p>Made with ❤️ for the coding community</p>
-            <p>API: <a href="https://time-complexity-extension-1.onrender.com" style="color: white;">https://time-complexity-extension-1.onrender.com</a></p>
+            <p>Made with ❤️ for the coding community • Powered by AI & Machine Learning</p>
+            <p>API: <a href="https://time-complexity-extension-1.onrender.com">https://time-complexity-extension-1.onrender.com</a> • 
+               GitHub: <a href="https://github.com/omsherikar/Time_Complexity_Extension">omsherikar/Time_Complexity_Extension</a></p>
         </div>
     </div>
 </body>
