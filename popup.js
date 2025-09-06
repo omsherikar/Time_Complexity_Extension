@@ -1,7 +1,7 @@
 class TimeComplexityAnalyzer {
     constructor() {
-        this.apiUrl = 'http://localhost:8000/analyze';
-        this.mlApiUrl = 'http://localhost:8000/analyze-ml';
+        this.apiUrl = 'https://time-complexity-extension-1.onrender.com/analyze';
+        this.mlApiUrl = 'https://time-complexity-extension-1.onrender.com/analyze-ml';
         this.useML = true; // Default to ML-enhanced analysis
         this.init();
     }
@@ -95,7 +95,19 @@ class TimeComplexityAnalyzer {
             this.displayResults(result, analysisType);
         } catch (error) {
             console.error('Analysis error:', error);
-            this.showError(`Analysis failed: ${error.message}. Make sure the backend server is running.`);
+            let errorMessage = 'Analysis failed. ';
+            
+            if (error.message.includes('Failed to fetch')) {
+                errorMessage += 'Network error - check your internet connection and try again.';
+            } else if (error.message.includes('CORS')) {
+                errorMessage += 'CORS error - the API server may be down.';
+            } else if (error.message.includes('HTTP error')) {
+                errorMessage += `Server error: ${error.message}`;
+            } else {
+                errorMessage += `${error.message}`;
+            }
+            
+            this.showError(errorMessage);
         } finally {
             this.hideLoading();
         }
