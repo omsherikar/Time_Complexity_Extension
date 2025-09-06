@@ -6,7 +6,7 @@ chrome.runtime.onInstalled.addListener(() => {
     
     // Set default settings
     chrome.storage.local.set({
-        'apiUrl': 'https://timecomplexityextension-production.up.railway.app',
+        'apiUrl': 'https://time-complexity-extension-1.onrender.com',
         'autoExtract': true,
         'showFloatingButton': true
     });
@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function handleAnalyzeCode(code, language, useML = false) {
     try {
         const settings = await chrome.storage.local.get(['apiUrl']);
-        const apiUrl = settings.apiUrl || 'https://timecomplexityextension-production.up.railway.app';
+        const apiUrl = settings.apiUrl || 'https://time-complexity-extension-1.onrender.com';
         const endpoint = useML ? '/analyze-ml' : '/analyze';
         
         const response = await fetch(`${apiUrl}${endpoint}`, {

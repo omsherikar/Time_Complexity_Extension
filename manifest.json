@@ -9,7 +9,7 @@
     "scripting"
   ],
   "host_permissions": [
-    "https://timecomplexityextension-production.up.railway.app/*",
+    "https://time-complexity-extension-1.onrender.com/*",
     "http://localhost:8000/*",
     "https://leetcode.com/*",
     "https://codeforces.com/*",
