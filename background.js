@@ -6,7 +6,7 @@ chrome.runtime.onInstalled.addListener(() => {
     
     // Set default settings
     chrome.storage.local.set({
-        'apiUrl': 'http://localhost:8000',
+        'apiUrl': 'https://timecomplexity-analyzer-api.herokuapp.com',
         'autoExtract': true,
         'showFloatingButton': true
     });
@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function handleAnalyzeCode(code, language, useML = false) {
     try {
         const settings = await chrome.storage.local.get(['apiUrl']);
-        const apiUrl = settings.apiUrl || 'http://localhost:8000';
+        const apiUrl = settings.apiUrl || 'https://timecomplexity-analyzer-api.herokuapp.com';
         const endpoint = useML ? '/analyze-ml' : '/analyze';
         
         const response = await fetch(`${apiUrl}${endpoint}`, {
