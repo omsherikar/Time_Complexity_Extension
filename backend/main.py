@@ -7,7 +7,7 @@ from .analyzer import TimeComplexityAnalyzer
 
 # ML Integration
 try:
-    from .ml_integration_simple import analyze_with_ml, ML_AVAILABLE
+    from .ml_integration import analyze_with_ml, ML_AVAILABLE
     print(f"🤖 ML Integration: {'Available' if ML_AVAILABLE else 'Not Available'}")
 except ImportError:
     print("⚠️ ML Integration not available")

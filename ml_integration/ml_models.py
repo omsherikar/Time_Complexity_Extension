@@ -14,7 +14,12 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import classification_report, accuracy_score
-# import xgboost as xgb  # Temporarily disabled due to OpenMP dependency
+try:
+    import xgboost as xgb
+    XGBOOST_AVAILABLE = True
+except ImportError:
+    print("⚠️ XGBoost not available, using alternative models")
+    XGBOOST_AVAILABLE = False
 import joblib
 import ast
 import re

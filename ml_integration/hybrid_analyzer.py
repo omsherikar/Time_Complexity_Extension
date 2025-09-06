@@ -8,7 +8,12 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from backend.analyzer import TimeComplexityAnalyzer
+try:
+    from backend.analyzer import TimeComplexityAnalyzer
+except ImportError:
+    # For deployment, try alternative import
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+    from analyzer import TimeComplexityAnalyzer
 from .ml_models import TimeComplexityMLAnalyzer
 from typing import Dict, Any, List
 import json
