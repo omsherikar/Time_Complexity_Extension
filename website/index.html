@@ -12,7 +12,7 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -34,7 +34,7 @@
         .header h1 {
             font-size: 3rem;
             margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .header p {
@@ -43,11 +43,11 @@
         }
         
         .main-content {
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
         
         .features {
@@ -58,30 +58,37 @@
         }
         
         .feature {
-            background: #f8f9fa;
+            text-align: center;
             padding: 30px;
+            background: #f8f9fa;
             border-radius: 15px;
-            border-left: 4px solid #667eea;
-            transition: transform 0.3s ease;
+            border: 2px solid #e9ecef;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         .feature:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
         }
         
         .feature h3 {
             color: #667eea;
             margin-bottom: 15px;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
         }
         
         .download-section {
             text-align: center;
-            margin: 50px 0;
-            padding: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            padding: 50px;
+            border-radius: 20px;
+            margin: 40px 0;
         }
         
         .download-btn {
@@ -89,213 +96,163 @@
             background: white;
             color: #667eea;
             padding: 15px 30px;
-            border-radius: 50px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
             margin: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .download-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
         
-        .platforms {
-            margin: 40px 0;
-        }
-        
-        .platforms h3 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        
-        .platform-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .platform {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 500;
-            color: #1976d2;
-        }
-        
-        .instructions {
-            background: #fff3e0;
-            border: 1px solid #ffb74d;
-            border-radius: 15px;
+        .installation-steps {
+            background: #f8f9fa;
             padding: 30px;
-            margin: 40px 0;
+            border-radius: 15px;
+            margin: 30px 0;
         }
         
-        .instructions h3 {
-            color: #f57c00;
-            margin-bottom: 20px;
+        .installation-steps ol {
+            margin-left: 20px;
         }
         
-        .instructions ol {
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 10px;
-        }
-        
-        .screenshots {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-        
-        .screenshot {
-            background: #f5f5f5;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .screenshot img {
-            max-width: 100%;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .installation-steps li {
+            margin: 10px 0;
+            font-size: 1.1rem;
         }
         
         .footer {
             text-align: center;
-            margin-top: 50px;
-            padding: 30px;
             color: white;
+            margin-top: 50px;
             opacity: 0.8;
         }
         
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1.1rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>⏱️ TimeComplexity Analyzer</h1>
-            <p>AI-powered time complexity analysis for coding platforms</p>
+            <h1>🚀 TimeComplexity Analyzer</h1>
+            <p>AI-Powered Chrome Extension for Algorithm Analysis</p>
         </div>
         
         <div class="main-content">
-            <div class="download-section">
-                <h2>🚀 Download the Extension</h2>
-                <p>Analyze time and space complexity instantly on 30+ coding platforms!</p>
-                <a href="https://chrome.google.com/webstore/detail/timecomplexity-analyzer/your-extension-id" class="download-btn">
-                    📥 Install from Chrome Web Store
-                </a>
-                <a href="releases/timecomplexity-analyzer-v1.0.0.zip" class="download-btn">
-                    📦 Download ZIP (Manual Install)
-                </a>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">90-95%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">30+</div>
+                    <div class="stat-label">Platforms</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">ML Models</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">Free</div>
+                    <div class="stat-label">Forever</div>
+                </div>
             </div>
             
             <div class="features">
                 <div class="feature">
-                    <h3>🤖 ML-Enhanced Analysis</h3>
-                    <p>90-95% accuracy using ensemble machine learning models for precise complexity analysis.</p>
+                    <div class="feature-icon">🤖</div>
+                    <h3>ML-Enhanced Analysis</h3>
+                    <p>Advanced machine learning models provide 90-95% accuracy in time and space complexity analysis</p>
                 </div>
                 
                 <div class="feature">
-                    <h3>🌐 Universal Compatibility</h3>
-                    <p>Works automatically on 30+ coding platforms including LeetCode, Codeforces, and HackerRank.</p>
+                    <div class="feature-icon">🌐</div>
+                    <h3>Universal Compatibility</h3>
+                    <p>Works on LeetCode, Codeforces, HackerRank, GeeksforGeeks, and 25+ other coding platforms</p>
                 </div>
                 
                 <div class="feature">
-                    <h3>🎯 Selection-Based Analysis</h3>
-                    <p>Simply select any code on any webpage and click the floating button for instant analysis.</p>
+                    <div class="feature-icon">🎯</div>
+                    <h3>Selection-Based</h3>
+                    <p>Simply select any code snippet and click the floating button for instant analysis</p>
                 </div>
                 
                 <div class="feature">
-                    <h3>🎨 Beautiful UI</h3>
-                    <p>Modern glass morphism design with smooth animations and professional results display.</p>
+                    <div class="feature-icon">📊</div>
+                    <h3>Detailed Insights</h3>
+                    <p>Get comprehensive breakdowns with optimization suggestions and confidence scores</p>
                 </div>
                 
                 <div class="feature">
-                    <h3>📊 Detailed Insights</h3>
-                    <p>Get time complexity, space complexity, breakdown, and optimization suggestions.</p>
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-Time Analysis</h3>
+                    <p>Instant results with hybrid rule-based and ML analysis for maximum accuracy</p>
                 </div>
                 
                 <div class="feature">
-                    <h3>⚡ Real-time Analysis</h3>
-                    <p>Instant results with confidence scores and detailed explanations.</p>
+                    <div class="feature-icon">🎨</div>
+                    <h3>Modern UI</h3>
+                    <p>Beautiful glass morphism design with intuitive user experience</p>
                 </div>
             </div>
             
-            <div class="platforms">
-                <h3>🌐 Supported Platforms</h3>
-                <div class="platform-grid">
-                    <div class="platform">LeetCode</div>
-                    <div class="platform">Codeforces</div>
-                    <div class="platform">HackerRank</div>
-                    <div class="platform">CodeChef</div>
-                    <div class="platform">GeeksforGeeks</div>
-                    <div class="platform">InterviewBit</div>
-                    <div class="platform">Coding Ninjas</div>
-                    <div class="platform">Codewars</div>
-                    <div class="platform">Exercism</div>
-                    <div class="platform">Project Euler</div>
-                    <div class="platform">AtCoder</div>
-                    <div class="platform">SPOJ</div>
-                    <div class="platform">Beecrowd</div>
-                    <div class="platform">Luogu</div>
-                    <div class="platform">And 15+ more!</div>
-                </div>
+            <div class="download-section">
+                <h2>📥 Download & Install</h2>
+                <p>Get started in under 2 minutes!</p>
+                <a href="https://github.com/omsherikar/Time_Complexity_Extension/releases/latest/download/timecomplexity-analyzer-v1.0.0.zip" class="download-btn">
+                    📦 Download Extension
+                </a>
+                <a href="https://github.com/omsherikar/Time_Complexity_Extension" class="download-btn">
+                    🔗 View Source Code
+                </a>
             </div>
             
-            <div class="instructions">
-                <h3>📋 How to Install (Manual Method)</h3>
+            <div class="installation-steps">
+                <h3>🔧 Installation Steps</h3>
                 <ol>
-                    <li>Download the extension ZIP file from the link above</li>
+                    <li>Download the ZIP file from the link above</li>
                     <li>Extract the ZIP file to a folder on your computer</li>
                     <li>Open Chrome and go to <code>chrome://extensions/</code></li>
-                    <li>Enable "Developer mode" (toggle in top-right corner)</li>
+                    <li>Enable "Developer mode" in the top right</li>
                     <li>Click "Load unpacked" and select the extracted folder</li>
-                    <li>The extension should now appear in your extensions list</li>
                     <li>Visit any coding platform and start analyzing!</li>
                 </ol>
-            </div>
-            
-            <div class="screenshots">
-                <div class="screenshot">
-                    <h4>Extension Popup</h4>
-                    <p>Clean, modern interface for code analysis</p>
-                </div>
-                <div class="screenshot">
-                    <h4>Floating Button</h4>
-                    <p>Appears on coding platforms for easy access</p>
-                </div>
-                <div class="screenshot">
-                    <h4>Analysis Results</h4>
-                    <p>Beautiful modal with detailed complexity analysis</p>
-                </div>
             </div>
         </div>
         
         <div class="footer">
             <p>Made with ❤️ for the coding community</p>
-            <p>© 2024 TimeComplexity Analyzer. All rights reserved.</p>
+            <p>API: <a href="https://time-complexity-extension-1.onrender.com" style="color: white;">https://time-complexity-extension-1.onrender.com</a></p>
         </div>
     </div>
 </body>
