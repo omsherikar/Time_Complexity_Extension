@@ -42,7 +42,7 @@ class AnalysisResponse(BaseModel):
     confidence: float
 
 # Initialize the analyzer
-analyzer = TimeComplexityAnalyzer()
+from .ml_integration import analyze_with_ml as analyze_ml_hybrid
 
 @app.get("/")
 async def root():
@@ -70,15 +70,15 @@ async def analyze_code(request: AnalysisRequest):
         if request.language not in ["python", "cpp", "java", "javascript", "c", "go", "rust"]:
             raise HTTPException(status_code=400, detail="Unsupported language")
         
-        # Perform analysis
-        result = analyzer.analyze(request.code, request.language)
+        # Perform ML-enhanced hybrid analysis
+        result = analyze_ml_hybrid(request.code, request.language)
         
         return AnalysisResponse(
             time_complexity=result["time_complexity"],
             space_complexity=result["space_complexity"],
-            breakdown=result["breakdown"],
-            suggestions=result["suggestions"],
-            confidence=result["confidence"]
+            breakdown=result.get("breakdown", []),
+            suggestions=result.get("suggestions", []),
+            confidence=result.get("confidence", result.get("ensemble_confidence", 0.0))
         )
         
     except Exception as e:

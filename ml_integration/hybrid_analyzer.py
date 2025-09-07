@@ -15,8 +15,9 @@ except ImportError:
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
     from analyzer import TimeComplexityAnalyzer
 from .ml_models import TimeComplexityMLAnalyzer
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import json
+import re
 
 class HybridTimeComplexityAnalyzer:
     def __init__(self, ml_models_path: str = None):
@@ -36,6 +37,12 @@ class HybridTimeComplexityAnalyzer:
                 print("🔄 Falling back to rule-based analysis only")
         else:
             print("ℹ️ ML models not found. Using rule-based analysis only")
+        
+        # Phase-1 toggle: soft guardrails (no hard overrides when disabled)
+        # Default off: ML-first without pattern forcing
+        self.STRICT_GUARDRAILS: bool = bool(
+            os.environ.get("STRICT_GUARDRAILS", "0").strip() in ("1", "true", "True")
+        )
     
     def analyze(self, code: str, language: str = "python") -> Dict[str, Any]:
         """
@@ -55,7 +62,7 @@ class HybridTimeComplexityAnalyzer:
             except Exception as e:
                 print(f"⚠️ ML analysis failed: {e}")
         
-        # Combine results
+        # Combine results (ML-first policy)
         final_result = self._combine_analyses(rule_based_result, ml_result, code, language)
         
         return final_result
@@ -63,13 +70,21 @@ class HybridTimeComplexityAnalyzer:
     def _combine_analyses(self, rule_result: Dict, ml_result: Dict, code: str, language: str) -> Dict[str, Any]:
         """Intelligently combine rule-based and ML analysis results"""
         
-        # If ML is not available, return rule-based result
+        # If ML is not available, return rule-based result (with safe guardrail corrections if strong signals)
         if not ml_result:
+            comp = self._composite_signals(code, language)
+            corrected_time, corrected_space = self._guardrail_corrections(comp)
+            final_time = corrected_time or rule_result.get('time_complexity', 'Unknown')
+            final_space = corrected_space or rule_result.get('space_complexity', 'Unknown')
+            method = 'rule_plus_guardrail' if (corrected_time or corrected_space) else 'rule_based'
+            ensemble_conf = max(rule_result.get('confidence', 0.0), 0.55 if (corrected_time or corrected_space) else 0.0)
             return {
                 **rule_result,
-                'analysis_method': 'rule_based',
+                'time_complexity': final_time,
+                'space_complexity': final_space,
+                'analysis_method': method,
                 'ml_confidence': 0.0,
-                'ensemble_confidence': rule_result.get('confidence', 0.0)
+                'ensemble_confidence': ensemble_conf
             }
         
         # Extract complexities
@@ -81,12 +96,56 @@ class HybridTimeComplexityAnalyzer:
         ml_space = ml_result.get('space_complexity', 'Unknown')
         ml_time_confidence = ml_result.get('time_confidence', 0.0)
         ml_space_confidence = ml_result.get('space_confidence', 0.0)
+
+        # Phase-1: compute language-specific composite signals (C++/Java priority)
+        composite = self._composite_signals(code, language)
+
+        # Soft guardrails: nudge ML confidence based on strong patterns (never hard override here)
+        ml_avg_conf = (ml_time_confidence + ml_space_confidence) / 2
+        if self.STRICT_GUARDRAILS:
+            # Boost confidence slightly if ML matches a strong signature
+            if composite.get('binary_search') and ml_time in ('O(log n)', 'O(log n)'):
+                ml_time_confidence = min(1.0, ml_time_confidence + 0.1)
+            if composite.get('merge_sort') and ml_time in ('O(n log n)', 'O(n log n)'):
+                ml_time_confidence = min(1.0, ml_time_confidence + 0.1)
+            if composite.get('dp_triply_nested') and ml_time in ('O(n³)', 'O(n^3)', 'O(n3)'):
+                ml_time_confidence = min(1.0, ml_time_confidence + 0.12)
+            if composite.get('bubble_triangular') and ml_time in ('O(n²)', 'O(n^2)'):
+                ml_time_confidence = min(1.0, ml_time_confidence + 0.08)
+            ml_avg_conf = (ml_time_confidence + ml_space_confidence) / 2
         
-        # Determine final complexity based on confidence and agreement
+        # Determine final complexity based on confidence and agreement (ML-first)
         final_time, final_space, method, confidence = self._determine_final_complexity(
             rule_time, rule_space, rule_confidence,
             ml_time, ml_space, ml_time_confidence, ml_space_confidence
         )
+
+        # If ML confidence is low and we have very strong composite evidence, provide safe correction
+        # We only apply this when ML confidence is clearly low (< 0.5) to avoid fighting ML.
+        if ml_result and confidence < 0.5:
+            corrected_time, corrected_space = self._guardrail_corrections(composite)
+            if corrected_time or corrected_space:
+                if corrected_time:
+                    final_time = corrected_time
+                if corrected_space:
+                    final_space = corrected_space
+                method = 'guardrail_cpp'
+                confidence = max(confidence, 0.55)
+
+        # Stronger guardrails when STRICT_GUARDRAILS enabled: enforce well-known signatures
+        if self.STRICT_GUARDRAILS:
+            hard_time, hard_space = self._guardrail_corrections(composite)
+            if hard_time:
+                # Enforce time correction when signature is strong and ML disagrees
+                if hard_time != final_time:
+                    final_time = hard_time
+                    method = 'guardrail_enforced'
+                    confidence = max(confidence, 0.6)
+            if hard_space:
+                if hard_space != final_space:
+                    final_space = hard_space
+                    method = 'guardrail_enforced'
+                    confidence = max(confidence, 0.6)
         
         # Combine breakdowns
         breakdown = self._combine_breakdowns(rule_result.get('breakdown', []), ml_result)
@@ -117,34 +176,154 @@ class HybridTimeComplexityAnalyzer:
                                   ml_time, ml_space, ml_time_conf, ml_space_conf):
         """Determine final complexity based on confidence and agreement"""
         
-        # If rule-based has high confidence and ML agrees, use rule-based
-        if rule_conf > 0.8 and rule_time == ml_time and rule_space == ml_space:
-            return rule_time, rule_space, 'hybrid_agreement', max(rule_conf, (ml_time_conf + ml_space_conf) / 2)
-        
-        # If ML has high confidence and rule-based is uncertain
-        if (ml_time_conf + ml_space_conf) / 2 > 0.8 and rule_conf < 0.5:
-            return ml_time, ml_space, 'ml_high_confidence', (ml_time_conf + ml_space_conf) / 2
-        
-        # If rule-based has high confidence and ML is uncertain
-        if rule_conf > 0.8 and (ml_time_conf + ml_space_conf) / 2 < 0.5:
-            return rule_time, rule_space, 'rule_based_high_confidence', rule_conf
-        
-        # If both are uncertain, use weighted average
-        if rule_conf < 0.5 and (ml_time_conf + ml_space_conf) / 2 < 0.5:
-            # Prefer rule-based for known patterns, ML for complex patterns
-            if rule_time != 'Unknown':
-                return rule_time, rule_space, 'rule_based_fallback', rule_conf
+        # ML-first policy
+        ml_avg = (ml_time_conf + ml_space_conf) / 2
+        # High-confidence ML → take ML
+        if ml_avg >= 0.8:
+            return ml_time, ml_space, 'ml_high_confidence', ml_avg
+        # Low-confidence ML and decent rule confidence → allow rule fallback
+        if ml_avg < 0.45 and rule_conf >= 0.6:
+            return rule_time, rule_space, 'rule_based_fallback', rule_conf
+        # If both are low → Unknown (avoid confident wrong answers)
+        if ml_avg < 0.45 and rule_conf < 0.6:
+            return 'Unknown', 'Unknown', 'uncertain', 0.4
+        # Otherwise prefer ML (even if moderate)
+        return ml_time, ml_space, 'ml_higher_confidence', ml_avg
+
+    def _guardrail_corrections(self, comp: Dict[str, bool]) -> Tuple[str, str]:
+        """Provide safe corrections when we have very strong composite evidence and low ML confidence.
+        Returns (time_override, space_override) with None when no change.
+        """
+        t = None
+        s = None
+        if comp.get('binary_search'):
+            t = 'O(log n)'
+            s = s or 'O(1)'
+        if comp.get('merge_sort'):
+            t = 'O(n log n)'
+            s = 'O(n)'
+        if comp.get('dp_triply_nested'):
+            t = 'O(n³)'
+            s = s or 'O(n²)'
+        if comp.get('bubble_triangular'):
+            t = 'O(n²)'
+            s = s or 'O(1)'
+        if comp.get('dp_2d_table'):
+            s = 'O(n²)'
+        if comp.get('permutations'):
+            t = 'O(n!)'
+            s = s or 'O(n)'
+        if comp.get('balanced_tree_loop'):
+            t = 'O(n log n)'
+            s = s or 'O(n)'
+        if comp.get('linear_scan'):
+            t = 'O(n)'
+            s = s or 'O(1)'
+        if comp.get('exp_recursive'):
+            t = 'O(2ⁿ)'
+            s = 'O(n)'
+        if comp.get('dp_1d_array'):
+            t = 'O(n)'
+            s = 'O(n)'
+        if comp.get('triple_nested_loops'):
+            t = 'O(n³)'
+            s = s or 'O(1)'
+        return t, s
+
+    def _composite_signals(self, code: str, language: str) -> Dict[str, bool]:
+        """Detect strong language-aware patterns (C++/Java prioritized)."""
+        comp: Dict[str, bool] = {
+            'binary_search': False,
+            'merge_sort': False,
+            'dp_triply_nested': False,
+            'bubble_triangular': False,
+            'dp_2d_table': False,
+            'permutations': False,
+            'balanced_tree_loop': False,
+            'linear_scan': False,
+            'exp_recursive': False,
+            'dp_1d_array': False,
+            'triple_nested_loops': False,
+        }
+        try:
+            src = code
+            if language in ('cpp', 'java'):
+                # Binary search: while (l<=r) + mid + adjust bounds (support l + (r-l)/2 or (l+r)/2)
+                if re.search(r'while\s*\(\s*\w+\s*<=\s*\w+\s*\)', src) and \
+                   (re.search(r'mid\s*=\s*\(\s*\w+\s*\+\s*\w+\s*\)\s*/\s*2', src) or \
+                    re.search(r'mid\s*=\s*\w+\s*\+\s*\(\s*\w+\s*-\s*\w+\s*\)\s*/\s*2', src)) and \
+                   (re.search(r'\w+\s*=\s*mid\s*\+\s*1', src) or re.search(r'\w+\s*=\s*mid\s*-\s*1', src)):
+                    comp['binary_search'] = True
+
+                # Merge sort: recursive split + merge with temp buffers (vector or stack arrays)
+                if (re.search(r'mergeSort\s*\(', src) and re.search(r'merge\s*\(', src)) and \
+                   (re.search(r'\bint\s+L\s*\[\s*\w+\s*\]\s*,\s*R\s*\[\s*\w+\s*\]\s*;', src) or \
+                    re.search(r'vector\s*<[^>]+>\s*[LR]\s*\(', src) or \
+                    ('int[] L' in src and 'int[] R' in src)):
+                    comp['merge_sort'] = True
+
+                # DP 2D table: C++ vector<vector<..>> or C/Java 2D arrays like int m[n][n] / new int[n][n]
+                if re.search(r'vector\s*<\s*vector<[^>]+>\s*>\s*\w+\s*\(', src) or \
+                   re.search(r'\bint\s+\w+\s*\[\s*\w+\s*\]\s*\[\s*\w+\s*\]', src) or \
+                   re.search(r'new\s+\w+\s*\[\s*\w+\s*\]\s*\[\s*\w+\s*\]', src):
+                    comp['dp_2d_table'] = True
+
+                # Triply nested loops (very rough but effective for DP like MCM)
+                # Look for three for-loops with indices i,j,k in proximity
+                if re.search(r'for\s*\(.*len.*\)', src) and re.search(r'for\s*\(.*i\s*<', src) and re.search(r'for\s*\(.*k\s*<', src):
+                    comp['dp_triply_nested'] = True
+                # Generic triple nested loops (C++)
+                if len(re.findall(r'for\s*\(', src)) >= 3 and re.search(r'for[\s\S]*for[\s\S]*for', src):
+                    comp['triple_nested_loops'] = True
+
+                # Bubble sort triangular bound (j < n - i - 1)
+                if re.search(r'for\s*\(\s*int\s+j\s*=\s*0\s*;\s*j\s*<\s*\w+\s*-\s*i\s*-\s*1\s*;', src):
+                    comp['bubble_triangular'] = True
+
+                # Exponential recursion: return f(n-1) + f(n-2) or two recursive calls
+                if re.search(r'return\s+([A-Za-z_]\w*)\s*\(\s*\w+\s*-\s*1\s*\)\s*\+\s*\1\s*\(\s*\w+\s*-\s*2\s*\)', src):
+                    comp['exp_recursive'] = True
+
+                # Permutations/backtracking: swap + recurse on next index or next_permutation loop
+                if ('next_permutation' in src) or \
+                   (re.search(r'swap\s*\(\s*\w+\s*\[\s*\w+\s*\]\s*,\s*\w+\s*\[\s*\w+\s*\]\s*\)', src) and \
+                    re.search(r'\w+\s*\(\s*\w+\s*,\s*\w+\s*[+\-]\s*1\s*\)', src)) or \
+                   (re.search(r'int\s+\w+\s*=\s*\w+\s*\[\s*\w+\s*\]\s*;', src) and \
+                    re.search(r'\w+\s*\[\s*\w+\s*\]\s*=\s*\w+\s*\[\s*\w+\s*\]\s*;', src) and \
+                    re.search(r'\w+\s*\(\s*\w+\s*,\s*\w+\s*\+\s*1\s*\)', src)):
+                    comp['permutations'] = True
+
+                # Balanced tree ops in loop: Java TreeMap/TreeSet with puts in a for/foreach
+                if ('TreeMap<' in src or 'TreeSet<' in src) and re.search(r'for\s*\(', src) and \
+                   ('.put(' in src or '.add(' in src):
+                    comp['balanced_tree_loop'] = True
+
+                # Linear scan: single for loop over container size without nested/binary cues
+                if re.search(r'for\s*\(\s*int\s+\w+\s*=\s*0\s*;\s*\w+\s*<\s*\w+\.size\s*\(\s*\)\s*;\s*\w+\+\+\s*\)', src) and \
+                   not comp['binary_search'] and not comp['bubble_triangular'] and 'while' not in src:
+                    comp['linear_scan'] = True
+
+                # DP 1D array: vector<int> dp(n + 1, 0)
+                if re.search(r'vector\s*<\s*int\s*>\s*dp\s*\(\s*\w+\s*\+\s*1\s*,\s*0\s*\)', src):
+                    comp['dp_1d_array'] = True
             else:
-                return ml_time, ml_space, 'ml_fallback', (ml_time_conf + ml_space_conf) / 2
-        
-        # Default: use the one with higher confidence
-        rule_avg_conf = rule_conf
-        ml_avg_conf = (ml_time_conf + ml_space_conf) / 2
-        
-        if rule_avg_conf > ml_avg_conf:
-            return rule_time, rule_space, 'rule_based_higher_confidence', rule_avg_conf
-        else:
-            return ml_time, ml_space, 'ml_higher_confidence', ml_avg_conf
+                # Lightweight generic cues for Python/JS
+                if 'while left <= right' in src and 'mid' in src:
+                    comp['binary_search'] = True
+                if ('def merge' in src and 'while i <' in src and 'while j <' in src) or ('merge_sort' in src):
+                    comp['merge_sort'] = True
+                if re.search(r'dp\s*\[\s*\w+\s*\]\s*\[\s*\w+\s*\]', src):
+                    comp['dp_2d_table'] = True
+                if re.search(r'for j in range\(.*n.*-.*i.*-.*1\)', src):
+                    comp['bubble_triangular'] = True
+                if re.search(r'swap\(', src) and re.search(r'backtrack\(', src):
+                    comp['permutations'] = True
+                # Python triple nested loops
+                if re.search(r'for\s+\w+\s+in\s+range\(.*\):[\s\S]*for\s+\w+\s+in\s+range\(.*\):[\s\S]*for\s+\w+\s+in\s+range\(.*\):', src):
+                    comp['triple_nested_loops'] = True
+        except Exception:
+            pass
+        return comp
     
     def _combine_breakdowns(self, rule_breakdown: List[str], ml_result: Dict) -> List[str]:
         """Combine breakdown information from both approaches"""
