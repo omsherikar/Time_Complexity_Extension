@@ -26,27 +26,112 @@
             padding: 0 24px;
         }
         
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e8f0;
+            z-index: 1000;
+            padding: 16px 0;
+        }
+        
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-decoration: none;
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .navbar-link {
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .navbar-link:hover {
+            color: #3b82f6;
+        }
+        
+        .navbar-cta {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: background 0.2s ease;
+        }
+        
+        .navbar-cta:hover {
+            background: #2563eb;
+        }
+        
         .header {
             text-align: center;
-            padding: 80px 0 60px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 120px 0 80px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border-bottom: 1px solid #e2e8f0;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
         }
         
         .header h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 16px;
-            letter-spacing: -0.02em;
+            font-size: 4rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 20px;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
         
         .header p {
-            font-size: 1.25rem;
+            font-size: 1.375rem;
             color: #64748b;
             font-weight: 400;
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .header-badge {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 32px;
+            border: 1px solid #e2e8f0;
         }
         
         .main-content {
@@ -216,30 +301,48 @@
         
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 24px;
-            margin: 60px 0;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            margin: 80px 0;
+            padding: 60px 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
         }
         
         .stat {
             text-align: center;
-            padding: 32px 24px;
-            background: #f8fafc;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            padding: 0;
+            background: transparent;
+            border: none;
         }
         
         .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 3rem;
+            font-weight: 800;
             color: #1e293b;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
         }
         
         .stat-label {
             color: #64748b;
-            font-size: 1rem;
+            font-size: 1.125rem;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+                padding: 40px 0;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
         }
         
         .demo-section {
@@ -285,8 +388,21 @@
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="#" class="navbar-brand">TimeComplexity Analyzer</a>
+            <div class="navbar-links">
+                <a href="#features" class="navbar-link">Features</a>
+                <a href="#demo" class="navbar-link">Demo</a>
+                <a href="#install" class="navbar-link">Install</a>
+                <a href="https://github.com/omsherikar/Time_Complexity_Extension" class="navbar-cta">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <div class="header">
+            <div class="header-badge">Chrome Extension</div>
             <h1>TimeComplexity Analyzer</h1>
             <p>Professional Chrome Extension for Algorithm Analysis with AI-Powered Insights</p>
         </div>
@@ -311,7 +427,7 @@
                 </div>
             </div>
             
-            <div class="features">
+            <div id="features" class="features">
                 <div class="feature">
                     <div class="feature-icon">🤖</div>
                     <h3>AI-Powered Analysis</h3>
@@ -349,7 +465,7 @@
                 </div>
             </div>
             
-            <div class="demo-section">
+            <div id="demo" class="demo-section">
                 <h3>How It Works</h3>
                 <p>Select any code snippet on supported platforms and get instant complexity analysis:</p>
                 <div class="code-demo">
@@ -379,7 +495,7 @@
                 </a>
             </div>
             
-            <div class="installation-steps">
+            <div id="install" class="installation-steps">
                 <h3>Installation Steps</h3>
                 <ol>
                     <li>Download the ZIP file from the link above</li>
